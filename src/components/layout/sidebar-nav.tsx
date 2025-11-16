@@ -7,11 +7,15 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { StartupCompassLogo } from '@/components/startup-compass-logo';
 import { type Methodology } from '@/lib/data';
-import { ArrowLeft, LayoutDashboard, Notebook, Type } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard, Notebook, ChevronDown } from 'lucide-react';
 import { Badge } from '../ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { useState } from 'react';
 
 type SidebarNavProps = {
   selectedMethodology: Methodology | null;
@@ -21,9 +25,9 @@ type SidebarNavProps = {
 };
 
 export function SidebarNav({ selectedMethodology, activeObjectiveId, onSelectObjective, onSelectMethodology }: SidebarNavProps) {
+  const [openObjectives, setOpenObjectives] = useState<Set<string>>(() => new Set(selectedMethodology?.objectives.map(o => o.id)));
+
   if (!selectedMethodology) {
-    // Before a methodology is selected, we can show a minimal sidebar
-    // or the methodology list. Let's keep it minimal for now.
     return (
        <Sidebar>
         <SidebarHeader>
@@ -32,6 +36,8 @@ export function SidebarNav({ selectedMethodology, activeObjectiveId, onSelectObj
       </Sidebar>
     )
   }
+  
+  const activeParentObjective = selectedMethodology.objectives.find(obj => obj.id === activeObjectiveId || obj.subObjectives.some(sub => sub.id === activeObjectiveId));
 
   return (
     <Sidebar>
@@ -73,18 +79,48 @@ export function SidebarNav({ selectedMethodology, activeObjectiveId, onSelectObj
         </SidebarMenuItem>
 
         {selectedMethodology.objectives.map((objective) => (
-          <SidebarMenuItem key={objective.id}>
-            <SidebarMenuButton
-              onClick={() => onSelectObjective(objective.id)}
-              isActive={activeObjectiveId === objective.id}
-              tooltip={objective.title}
-            >
-              <div className="flex w-full justify-between items-center">
-                <span>{objective.title}</span>
-                {objective.type && <Badge variant={objective.type === 'quantitative' ? 'default' : 'secondary'}>{objective.type.substring(0,1).toUpperCase()}</Badge>}
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          <Collapsible 
+            asChild 
+            key={objective.id}
+            open={openObjectives.has(objective.id)}
+            onOpenChange={(isOpen) => {
+              setOpenObjectives(prev => {
+                const newSet = new Set(prev);
+                if (isOpen) newSet.add(objective.id);
+                else newSet.delete(objective.id);
+                return newSet;
+              })
+            }}
+          >
+            <SidebarMenuItem>
+              <CollapsibleTrigger asChild>
+                <SidebarMenuButton
+                  onClick={() => onSelectObjective(objective.id)}
+                  isActive={activeParentObjective?.id === objective.id && activeObjectiveId === objective.id}
+                  tooltip={objective.title}
+                >
+                  <div className="flex w-full justify-between items-center">
+                    <span>{objective.title}</span>
+                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                  </div>
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent asChild>
+                  <SidebarMenuSub>
+                    {objective.subObjectives.map(sub => (
+                       <SidebarMenuSubButton 
+                          key={sub.id} 
+                          onClick={() => onSelectObjective(sub.id)}
+                          isActive={activeObjectiveId === sub.id}
+                       >
+                          <span>{sub.title}</span>
+                          <Badge variant={sub.type === 'quantitative' ? 'default' : 'secondary'}>{sub.type.substring(0,1).toUpperCase()}</Badge>
+                       </SidebarMenuSubButton>
+                    ))}
+                  </SidebarMenuSub>
+              </CollapsibleContent>
+            </SidebarMenuItem>
+          </Collapsible>
         ))}
 
         <SidebarMenuItem>

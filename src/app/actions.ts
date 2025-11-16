@@ -2,8 +2,8 @@
 
 import { categorizeStartupIdea } from '@/ai/flows/categorize-startup-idea';
 import { generateStartupIdea } from '@/ai/flows/generate-startup-idea';
-import { generateObjectives } from '@/ai/flows/generate-objectives';
-import type { StartupData, Methodology } from '@/lib/data';
+import { generateSubObjectives } from '@/ai/flows/generate-sub-objectives';
+import type { StartupData, Objective } from '@/lib/data';
 import { z } from 'zod';
 
 const formSchema = z.object({
@@ -54,12 +54,12 @@ export async function processStartupIdea(
 }
 
 
-export async function getAIObjectives(startupData: StartupData, methodology: {id: string, name: string}) {
+export async function getAIObjectives(startupData: StartupData, parentObjective: Pick<Objective, 'id' | 'title' | 'description'>) {
   try {
-    const result = await generateObjectives({ startupData, methodology: { id: methodology.id, name: methodology.name } });
-    return { success: true, objectives: result.objectives };
+    const result = await generateSubObjectives({ startupData, parentObjective });
+    return { success: true, subObjectives: result.subObjectives };
   } catch (error) {
-    console.error('Failed to generate objectives:', error);
-    return { success: false, objectives: [] };
+    console.error('Failed to generate sub-objectives:', error);
+    return { success: false, subObjectives: [] };
   }
 }

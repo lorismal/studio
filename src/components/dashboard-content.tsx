@@ -5,7 +5,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { IdeaDefinitionForm } from '@/components/idea-definition-form';
-import { methodologies, type Methodology, type StartupData, type Note, type Objective } from '@/lib/data';
+import { methodologies, methodologyObjectives, type Methodology, type StartupData, type Note, type Objective } from '@/lib/data';
 import { WelcomeDashboard } from '@/components/welcome-dashboard';
 import { ProcessView } from '@/components/process-view';
 import { NotebookView } from '@/components/notebook-view';
@@ -14,6 +14,7 @@ import { getAIObjectives } from '@/app/actions';
 
 export function DashboardContent() {
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Generating objectives...');
   const [startupData, setStartupData] = useState<StartupData | null>(null);
   const [selectedMethodology, setSelectedMethodology] = useState<Methodology | null>(null);
   const [activeObjectiveId, setActiveObjectiveId] = useState<string | null>('dashboard');
@@ -32,22 +33,31 @@ export function DashboardContent() {
   
   const handleSelectMethodology = async (methodology: Omit<Methodology, 'objectives'>) => {
     if (!startupData) return;
+    
     setIsLoading(true);
-    const { success, objectives } = await getAIObjectives(startupData, { id: methodology.id, name: methodology.name });
-    if (success) {
-      const methodologyWithAIObjectives: Methodology = {
-        ...methodology,
-        objectives: objectives.map(obj => ({...obj, preselectedFor: []})),
+    const parentObjectives = methodologyObjectives[methodology.id];
+    const generatedObjectives: Objective[] = [];
+
+    for (const [index, parentObj] of parentObjectives.entries()) {
+      setLoadingMessage(`Generating objectives for "${parentObj.title}"... (${index + 1}/${parentObjectives.length})`);
+      const { success, subObjectives } = await getAIObjectives(startupData, parentObj);
+      if (success) {
+        generatedObjectives.push({ ...parentObj, subObjectives });
+      } else {
+        // Handle failure for a single objective - maybe add it with an empty sub-objective list
+        generatedObjectives.push({ ...parentObj, subObjectives: [] });
       }
-      setSelectedMethodology(methodologyWithAIObjectives);
-      setActiveObjectiveId('dashboard');
-    } else {
-      // Fallback or show error
-      setSelectedMethodology({...methodology, objectives: []});
-      setActiveObjectiveId('dashboard');
     }
+
+    const methodologyWithAIObjectives: Methodology = {
+      ...methodology,
+      objectives: generatedObjectives,
+    }
+    setSelectedMethodology(methodologyWithAIObjectives);
+    setActiveObjectiveId('dashboard');
     setIsLoading(false);
   };
+
 
   const handleSelectObjective = (objectiveId: string | null) => {
     setActiveObjectiveId(objectiveId);
@@ -60,7 +70,7 @@ export function DashboardContent() {
 
   const renderContent = () => {
     if (isLoading) {
-      return <div className="flex-1 flex items-center justify-center p-4">Generating objectives...</div>
+      return <div className="flex-1 flex items-center justify-center p-4">{loadingMessage}</div>
     }
 
     if (!startupData) {
@@ -70,7 +80,7 @@ export function DashboardContent() {
     if (!selectedMethodology) {
       return <MethodologySelection startupType={startupType} onSelectMethodology={handleSelectMethodology} />;
     }
-
+    
     const activeObjective = selectedMethodology.objectives.find(o => o.id === activeObjectiveId);
 
     switch (activeObjectiveId) {
