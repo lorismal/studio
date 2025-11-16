@@ -9,14 +9,15 @@ import { methodologies, type Methodology, type StartupData, type Note } from '@/
 import { WelcomeDashboard } from '@/components/welcome-dashboard';
 import { ProcessView } from '@/components/process-view';
 import { NotebookView } from '@/components/notebook-view';
+import { MethodologySelection } from '@/components/methodology-selection';
 
 export function DashboardContent() {
   const [startupData, setStartupData] = useState<StartupData | null>(null);
-  const [activeMethodology, setActiveMethodology] = useState<Methodology['id']>('dashboard');
+  const [selectedMethodology, setSelectedMethodology] = useState<Methodology | null>(null);
+  const [activeObjectiveId, setActiveObjectiveId] = useState<string | null>('dashboard');
   const [notes, setNotes] = useState<Note[]>([]);
 
-  const activeMethodologyDetails = methodologies.find(m => m.id === activeMethodology);
-  const startupType = startupData?.industries?.[0] || 'SaaS'; // Default to SaaS for pre-selection
+  const startupType = startupData?.industries?.[0] || 'SaaS';
 
   const handleAddNote = (newNote: Omit<Note, 'id' | 'createdAt'>) => {
     const note: Note = {
@@ -27,31 +28,56 @@ export function DashboardContent() {
     setNotes(prev => [note, ...prev]);
   };
   
+  const handleSelectMethodology = (methodology: Methodology) => {
+    setSelectedMethodology(methodology);
+    setActiveObjectiveId('dashboard');
+  };
+
+  const handleSelectObjective = (objectiveId: string | null) => {
+    setActiveObjectiveId(objectiveId);
+  }
+
   const renderContent = () => {
     if (!startupData) {
       return <IdeaDefinitionForm onIdeaGenerated={setStartupData} />;
     }
 
-    if (!activeMethodologyDetails) {
-        // Handle case where methodology is not found, though it shouldn't happen with current setup
-        return <div>Please select a methodology.</div>;
+    if (!selectedMethodology) {
+      return <MethodologySelection startupType={startupType} onSelectMethodology={handleSelectMethodology} />;
     }
 
-    switch (activeMethodology) {
+    const activeObjective = selectedMethodology.objectives.find(o => o.id === activeObjectiveId);
+
+    switch (activeObjectiveId) {
       case 'dashboard':
         return <WelcomeDashboard startupData={startupData} />;
       case 'notebook':
         return <NotebookView notes={notes} startupType={startupType} onAddNote={handleAddNote} />;
       default:
-        return <ProcessView methodology={activeMethodologyDetails} startupType={startupType} onAddNote={handleAddNote} notes={notes} />;
+        // This will handle both a specific objective view and the full process view
+        return <ProcessView methodology={selectedMethodology} startupType={startupType} onAddNote={handleAddNote} notes={notes} activeObjectiveId={activeObjectiveId} onSelectObjective={handleSelectObjective} />;
     }
   };
 
+  const getHeaderTitle = () => {
+    if (!selectedMethodology) return "Select a Methodology";
+    if (activeObjectiveId === 'dashboard') return 'Dashboard';
+    if (activeObjectiveId === 'notebook') return 'Notebook';
+    if (activeObjectiveId === null && selectedMethodology) return selectedMethodology.name;
+    const objective = selectedMethodology.objectives.find(o => o.id === activeObjectiveId);
+    return objective?.title || selectedMethodology.name;
+  }
+
   return (
     <SidebarProvider>
-      <SidebarNav activeMethodology={activeMethodology} onSelectMethodology={setActiveMethodology} />
+      <SidebarNav 
+        selectedMethodology={selectedMethodology}
+        activeObjectiveId={activeObjectiveId}
+        onSelectObjective={handleSelectObjective}
+        onSelectMethodology={setSelectedMethodology}
+      />
       <SidebarInset>
-        <Header title={activeMethodologyDetails?.name || 'Dashboard'} />
+        <Header title={getHeaderTitle()} />
         <main className="flex-1 overflow-auto">
           {renderContent()}
         </main>

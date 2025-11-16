@@ -9,19 +9,14 @@ export type Objective = {
 };
 
 export type Methodology = {
-  id: "dashboard" | "lean-startup" | "smart" | "okr" | "innovation-accounting" | "notebook";
+  id: "lean-startup" | "smart" | "okr" | "innovation-accounting";
   name: string;
   icon: LucideIcon;
   objectives: Objective[];
 };
 
+// The methodologies array no longer contains dashboard and notebook as they are treated as separate views
 export const methodologies: Methodology[] = [
-  {
-    id: "dashboard",
-    name: "Dashboard",
-    icon: LayoutDashboard,
-    objectives: []
-  },
   {
     id: "lean-startup",
     name: "Lean Startup",
@@ -70,12 +65,6 @@ export const methodologies: Methodology[] = [
       { id: "ia-4", title: "A/B Testing", description: "Run controlled experiments to test new features or changes." },
       { id: "ia-5", title: "Define Vanity vs. Actionable Metrics", description: "Distinguish between metrics that look good and those that drive decisions." },
     ],
-  },
-  {
-    id: "notebook",
-    name: "Notebook",
-    icon: Notebook,
-    objectives: [],
   },
 ];
 

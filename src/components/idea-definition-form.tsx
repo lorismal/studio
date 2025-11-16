@@ -35,7 +35,7 @@ export function IdeaDefinitionForm({ onIdeaGenerated }: IdeaDefinitionFormProps)
       onIdeaGenerated(state.data);
       toast({
         title: 'Analysis Complete!',
-        description: 'Your startup idea has been refined and categorized.',
+        description: 'Your startup idea has been refined. Now, choose a methodology.',
       });
     } else if (state.message && state.message !== 'success' && !state.errors) {
       toast({
