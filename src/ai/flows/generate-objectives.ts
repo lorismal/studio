@@ -64,7 +64,16 @@ You need to create both qualitative (focused on understanding and quality) and q
 **Chosen Framework:**
 - **Name:** {{methodology.name}} (ID: {{methodology.id}})
 
-Please generate 5-7 objectives tailored to this specific startup and framework. Ensure the objectives are logically sequenced if possible. For each objective, provide a unique ID, a clear title, a concise description, and specify whether it is 'qualitative' or 'quantitative'.
+**Instructions:**
+Generate 5-7 objectives tailored to this specific startup and framework.
+
+{{#if (eq methodology.id "smart")}}
+**IMPORTANT FOR SMART GOALS:** Do not create a single, large, vague goal. Instead, you must generate a series of smaller, sequential sub-goals. Each sub-goal must be a clear step forward that builds towards completing a larger strategic aim. The goals should be ordered chronologically to provide a clear path.
+{{else}}
+Ensure the objectives are logically sequenced if possible.
+{{/if}}
+
+For each objective, provide a unique ID, a clear title, a concise description, and specify whether it is 'qualitative' or 'quantitative'.
 
 The output must be a JSON object with a single key "objectives", which is an array of objective objects.`,
 });
