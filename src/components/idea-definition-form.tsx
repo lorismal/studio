@@ -1,12 +1,12 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 import { processStartupIdea } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Wand2 } from 'lucide-react';
 import type { StartupData } from '@/lib/data';
@@ -27,7 +27,7 @@ type IdeaDefinitionFormProps = {
 
 export function IdeaDefinitionForm({ onIdeaGenerated }: IdeaDefinitionFormProps) {
   const initialState = { message: '', data: null, errors: null };
-  const [state, dispatch] = useFormState(processStartupIdea, initialState);
+  const [state, dispatch] = useActionState(processStartupIdea, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
