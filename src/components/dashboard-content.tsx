@@ -33,7 +33,7 @@ export function DashboardContent() {
   const handleSelectMethodology = async (methodology: Omit<Methodology, 'objectives'>) => {
     if (!startupData) return;
     setIsLoading(true);
-    const { success, objectives } = await getAIObjectives(startupData, methodology as Methodology);
+    const { success, objectives } = await getAIObjectives(startupData, { id: methodology.id, name: methodology.name });
     if (success) {
       const methodologyWithAIObjectives: Methodology = {
         ...methodology,

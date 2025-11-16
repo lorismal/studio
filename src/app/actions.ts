@@ -54,7 +54,7 @@ export async function processStartupIdea(
 }
 
 
-export async function getAIObjectives(startupData: StartupData, methodology: Methodology) {
+export async function getAIObjectives(startupData: StartupData, methodology: {id: string, name: string}) {
   try {
     const result = await generateObjectives({ startupData, methodology: { id: methodology.id, name: methodology.name } });
     return { success: true, objectives: result.objectives };
