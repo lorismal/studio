@@ -1,10 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  SidebarProvider,
-  SidebarInset,
-} from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { IdeaDefinitionForm } from '@/components/idea-definition-form';
@@ -18,7 +15,7 @@ export function DashboardContent() {
   const [activeMethodology, setActiveMethodology] = useState<Methodology['id']>('dashboard');
   const [notes, setNotes] = useState<Note[]>([]);
 
-  const activeMethodologyDetails = methodologies.find(m => m.id === activeMethodology) || methodologies[0];
+  const activeMethodologyDetails = methodologies.find(m => m.id === activeMethodology);
   const startupType = startupData?.industries?.[0] || 'SaaS'; // Default to SaaS for pre-selection
 
   const handleAddNote = (newNote: Omit<Note, 'id' | 'createdAt'>) => {
@@ -35,6 +32,11 @@ export function DashboardContent() {
       return <IdeaDefinitionForm onIdeaGenerated={setStartupData} />;
     }
 
+    if (!activeMethodologyDetails) {
+        // Handle case where methodology is not found, though it shouldn't happen with current setup
+        return <div>Please select a methodology.</div>;
+    }
+
     switch (activeMethodology) {
       case 'dashboard':
         return <WelcomeDashboard startupData={startupData} />;
@@ -49,7 +51,7 @@ export function DashboardContent() {
     <SidebarProvider>
       <SidebarNav activeMethodology={activeMethodology} onSelectMethodology={setActiveMethodology} />
       <SidebarInset>
-        <Header title={activeMethodologyDetails.name} />
+        <Header title={activeMethodologyDetails?.name || 'Dashboard'} />
         <main className="flex-1 overflow-auto">
           {renderContent()}
         </main>
