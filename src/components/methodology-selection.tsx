@@ -6,7 +6,7 @@ import { Check } from 'lucide-react';
 
 type MethodologySelectionProps = {
   startupType: string;
-  onSelectMethodology: (methodology: Methodology) => void;
+  onSelectMethodology: (methodology: Omit<Methodology, 'objectives'>) => void;
 };
 
 // Simple logic to recommend a methodology
@@ -48,7 +48,7 @@ export function MethodologySelection({ startupType, onSelectMethodology }: Metho
                   </p>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" onClick={() => onSelectMethodology(methodology as Methodology)} variant={isRecommended ? 'default' : 'outline'}>
+                  <Button className="w-full" onClick={() => onSelectMethodology(methodology)} variant={isRecommended ? 'default' : 'outline'}>
                     {isRecommended && <Check className="mr-2" />}
                     Select {methodology.name}
                   </Button>

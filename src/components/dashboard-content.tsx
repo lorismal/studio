@@ -30,10 +30,10 @@ export function DashboardContent() {
     setNotes(prev => [note, ...prev]);
   };
   
-  const handleSelectMethodology = async (methodology: Methodology) => {
+  const handleSelectMethodology = async (methodology: Omit<Methodology, 'objectives'>) => {
     if (!startupData) return;
     setIsLoading(true);
-    const { success, objectives } = await getAIObjectives(startupData, methodology);
+    const { success, objectives } = await getAIObjectives(startupData, methodology as Methodology);
     if (success) {
       const methodologyWithAIObjectives: Methodology = {
         ...methodology,
@@ -43,7 +43,7 @@ export function DashboardContent() {
       setActiveObjectiveId('dashboard');
     } else {
       // Fallback or show error
-      setSelectedMethodology(methodology);
+      setSelectedMethodology({...methodology, objectives: []});
       setActiveObjectiveId('dashboard');
     }
     setIsLoading(false);
@@ -89,8 +89,8 @@ export function DashboardContent() {
     if (activeObjectiveId === 'dashboard') return 'Dashboard';
     if (activeObjectiveId === 'notebook') return 'Notebook';
     if (activeObjectiveId === null && selectedMethodology) return selectedMethodology.name;
-    const objective = selectedMethodology.objectives.find(o => o.id === activeObjectiveId);
-    return objective?.title || selectedMethodology.name;
+    const objective = selectedMethodology?.objectives.find(o => o.id === activeObjectiveId);
+    return objective?.title || selectedMethodology?.name || "";
   }
 
   return (
