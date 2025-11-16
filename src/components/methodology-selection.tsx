@@ -11,16 +11,13 @@ type MethodologySelectionProps = {
 
 // Simple logic to recommend a methodology
 const getRecommendedMethodology = (startupType: string) => {
-  switch (startupType) {
-    case 'SaaS':
-    case 'Marketplace':
+  if (startupType.toLowerCase().includes('saas') || startupType.toLowerCase().includes('marketplace')) {
       return 'lean-startup';
-    case 'Fintech':
-    case 'Healthtech':
-      return 'innovation-accounting';
-    default:
-      return 'smart';
   }
+  if (startupType.toLowerCase().includes('fintech') || startupType.toLowerCase().includes('healthtech')) {
+      return 'innovation-accounting';
+  }
+  return 'smart';
 }
 
 export function MethodologySelection({ startupType, onSelectMethodology }: MethodologySelectionProps) {
@@ -34,7 +31,7 @@ export function MethodologySelection({ startupType, onSelectMethodology }: Metho
             <p className="text-muted-foreground">Select a methodology to guide your startup process. Based on your startup type, we recommend the "{methodologies.find(m=>m.id === recommendedId)?.name}" framework.</p>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {methodologies.filter(m => m.id !== 'dashboard' && m.id !== 'notebook').map((methodology) => {
+          {methodologies.map((methodology) => {
              const isRecommended = methodology.id === recommendedId;
             return (
               <Card key={methodology.id} className={`flex flex-col ${isRecommended ? 'border-primary ring-2 ring-primary' : ''}`}>
@@ -51,7 +48,7 @@ export function MethodologySelection({ startupType, onSelectMethodology }: Metho
                   </p>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" onClick={() => onSelectMethodology(methodology)} variant={isRecommended ? 'default' : 'outline'}>
+                  <Button className="w-full" onClick={() => onSelectMethodology(methodology as Methodology)} variant={isRecommended ? 'default' : 'outline'}>
                     {isRecommended && <Check className="mr-2" />}
                     Select {methodology.name}
                   </Button>

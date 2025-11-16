@@ -2,7 +2,8 @@
 
 import { categorizeStartupIdea } from '@/ai/flows/categorize-startup-idea';
 import { generateStartupIdea } from '@/ai/flows/generate-startup-idea';
-import type { StartupData } from '@/lib/data';
+import { generateObjectives } from '@/ai/flows/generate-objectives';
+import type { StartupData, Methodology } from '@/lib/data';
 import { z } from 'zod';
 
 const formSchema = z.object({
@@ -49,5 +50,16 @@ export async function processStartupIdea(
       data: null,
       errors: null,
     };
+  }
+}
+
+
+export async function getAIObjectives(startupData: StartupData, methodology: Methodology) {
+  try {
+    const result = await generateObjectives({ startupData, methodology: { id: methodology.id, name: methodology.name } });
+    return { success: true, objectives: result.objectives };
+  } catch (error) {
+    console.error('Failed to generate objectives:', error);
+    return { success: false, objectives: [] };
   }
 }

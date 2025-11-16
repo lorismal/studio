@@ -9,8 +9,9 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { StartupCompassLogo } from '@/components/startup-compass-logo';
-import { methodologies, type Methodology } from '@/lib/data';
-import { ArrowLeft, LayoutDashboard, Notebook } from 'lucide-react';
+import { type Methodology } from '@/lib/data';
+import { ArrowLeft, LayoutDashboard, Notebook, Type } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
 type SidebarNavProps = {
   selectedMethodology: Methodology | null;
@@ -78,8 +79,10 @@ export function SidebarNav({ selectedMethodology, activeObjectiveId, onSelectObj
               isActive={activeObjectiveId === objective.id}
               tooltip={objective.title}
             >
-              <div className="w-4 h-4" /> 
-              <span>{objective.title}</span>
+              <div className="flex w-full justify-between items-center">
+                <span>{objective.title}</span>
+                {objective.type && <Badge variant={objective.type === 'quantitative' ? 'default' : 'secondary'}>{objective.type.substring(0,1).toUpperCase()}</Badge>}
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

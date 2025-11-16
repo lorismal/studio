@@ -5,13 +5,15 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { IdeaDefinitionForm } from '@/components/idea-definition-form';
-import { methodologies, type Methodology, type StartupData, type Note } from '@/lib/data';
+import { methodologies, type Methodology, type StartupData, type Note, type Objective } from '@/lib/data';
 import { WelcomeDashboard } from '@/components/welcome-dashboard';
 import { ProcessView } from '@/components/process-view';
 import { NotebookView } from '@/components/notebook-view';
 import { MethodologySelection } from '@/components/methodology-selection';
+import { getAIObjectives } from '@/app/actions';
 
 export function DashboardContent() {
+  const [isLoading, setIsLoading] = useState(false);
   const [startupData, setStartupData] = useState<StartupData | null>(null);
   const [selectedMethodology, setSelectedMethodology] = useState<Methodology | null>(null);
   const [activeObjectiveId, setActiveObjectiveId] = useState<string | null>('dashboard');
@@ -28,16 +30,39 @@ export function DashboardContent() {
     setNotes(prev => [note, ...prev]);
   };
   
-  const handleSelectMethodology = (methodology: Methodology) => {
-    setSelectedMethodology(methodology);
-    setActiveObjectiveId('dashboard');
+  const handleSelectMethodology = async (methodology: Methodology) => {
+    if (!startupData) return;
+    setIsLoading(true);
+    const { success, objectives } = await getAIObjectives(startupData, methodology);
+    if (success) {
+      const methodologyWithAIObjectives: Methodology = {
+        ...methodology,
+        objectives: objectives.map(obj => ({...obj, preselectedFor: []})),
+      }
+      setSelectedMethodology(methodologyWithAIObjectives);
+      setActiveObjectiveId('dashboard');
+    } else {
+      // Fallback or show error
+      setSelectedMethodology(methodology);
+      setActiveObjectiveId('dashboard');
+    }
+    setIsLoading(false);
   };
 
   const handleSelectObjective = (objectiveId: string | null) => {
     setActiveObjectiveId(objectiveId);
   }
+  
+  const handleBackToMethodologySelection = () => {
+    setSelectedMethodology(null);
+    setActiveObjectiveId('dashboard');
+  }
 
   const renderContent = () => {
+    if (isLoading) {
+      return <div className="flex-1 flex items-center justify-center p-4">Generating objectives...</div>
+    }
+
     if (!startupData) {
       return <IdeaDefinitionForm onIdeaGenerated={setStartupData} />;
     }
@@ -74,7 +99,7 @@ export function DashboardContent() {
         selectedMethodology={selectedMethodology}
         activeObjectiveId={activeObjectiveId}
         onSelectObjective={handleSelectObjective}
-        onSelectMethodology={setSelectedMethodology}
+        onSelectMethodology={handleBackToMethodologySelection}
       />
       <SidebarInset>
         <Header title={getHeaderTitle()} />
